@@ -23,6 +23,13 @@ class ChatListScreen extends StatelessWidget {
               Navigator.pushNamed(context, '/add_friend');
             },
           ),
+          IconButton(
+            icon: Icon(Icons.logout),
+            onPressed: () async {
+              await _auth.signOut();
+              Navigator.pushReplacementNamed(context, '/login');
+            },
+          ),
         ],
       ),
       body: currentUser == null

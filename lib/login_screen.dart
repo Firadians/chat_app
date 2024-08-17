@@ -1,86 +1,173 @@
 import 'package:flutter/material.dart';
-import 'package:firebase_auth/firebase_auth.dart';
-import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
+import 'bloc/login_bloc.dart';
+import 'bloc/login_event.dart';
+import 'bloc/login_state.dart';
 import 'chat_list_screen.dart';
 
-class LoginScreen extends StatefulWidget {
-  @override
-  _LoginScreenState createState() => _LoginScreenState();
-}
-
-class _LoginScreenState extends State<LoginScreen> {
-  final _auth = FirebaseAuth.instance;
-  final _emailController = TextEditingController();
-  final _passwordController = TextEditingController();
-
-  void _login() async {
-    try {
-      await _auth.signInWithEmailAndPassword(
-        email: _emailController.text,
-        password: _passwordController.text,
-      );
-      Navigator.pushReplacement(
-          context, MaterialPageRoute(builder: (context) => ChatListScreen()));
-    } catch (e) {
-      print(e);
-    }
-  }
-
-  void _register() async {
-    try {
-      UserCredential userCredential =
-          await _auth.createUserWithEmailAndPassword(
-        email: _emailController.text,
-        password: _passwordController.text,
-      );
-      FirebaseFirestore.instance
-          .collection('users')
-          .doc(userCredential.user!.uid)
-          .set({
-        'uid': userCredential.user!.uid,
-        'email': _emailController.text,
-        'friends': [],
-      });
-      Navigator.pushReplacement(
-          context, MaterialPageRoute(builder: (context) => ChatListScreen()));
-    } catch (e) {
-      print(e);
-    }
-  }
+class LoginScreen extends StatelessWidget {
+  final TextEditingController _emailController = TextEditingController();
+  final TextEditingController _passwordController = TextEditingController();
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(
-        title: Text('Login'),
-      ),
       body: Padding(
-        padding: EdgeInsets.all(16.0),
-        child: Column(
-          children: <Widget>[
-            TextField(
-              controller: _emailController,
-              decoration: InputDecoration(labelText: 'Email'),
-            ),
-            TextField(
-              controller: _passwordController,
-              decoration: InputDecoration(labelText: 'Password'),
-              obscureText: true,
-            ),
-            Row(
-              mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+        padding: const EdgeInsets.all(16.0),
+        child: Center(
+          child: SingleChildScrollView(
+            child: Column(
+              mainAxisAlignment: MainAxisAlignment.center,
               children: <Widget>[
-                ElevatedButton(
-                  onPressed: _login,
-                  child: Text('Login'),
+                // Add the image and the "Login" text
+                // Image.asset(
+                //   'assets/login_image.png', // Replace with your image asset path
+                //   height: 100.0, // Set an appropriate height
+                // ),
+                SizedBox(height: 16.0),
+                Text(
+                  'Login',
+                  style: TextStyle(
+                    fontSize: 24.0,
+                    fontWeight: FontWeight.bold,
+                    color: Colors.purple,
+                  ),
                 ),
-                ElevatedButton(
-                  onPressed: _register,
-                  child: Text('Register'),
+                SizedBox(height: 16.0),
+                Text(
+                  'Please sign in to continue.',
+                  style: TextStyle(
+                    fontSize: 16.0,
+                    fontWeight: FontWeight.normal,
+                    color: const Color.fromARGB(255, 37, 37, 37),
+                  ),
+                ),
+                SizedBox(
+                    height:
+                        32.0), // Adjust the space between the text and email field
+                TextField(
+                  controller: _emailController,
+                  decoration: InputDecoration(
+                    labelText: 'Enter email or user name',
+                    filled: true,
+                    fillColor: Colors.white,
+                    border: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(30),
+                    ),
+                  ),
+                  cursorColor: Colors.purple,
+                  style: TextStyle(color: Colors.purple),
+                ),
+                SizedBox(height: 16.0),
+                TextField(
+                  controller: _passwordController,
+                  decoration: InputDecoration(
+                    labelText: 'Password',
+                    filled: true,
+                    fillColor: Colors.white,
+                    border: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(30),
+                    ),
+                  ),
+                  cursorColor: Colors.purple,
+                  style: TextStyle(color: Colors.purple),
+                  obscureText: true,
+                ),
+                SizedBox(height: 16.0),
+                BlocConsumer<LoginBloc, LoginState>(
+                  listener: (context, state) {
+                    if (state is LoginSuccess) {
+                      Navigator.pushReplacement(
+                        context,
+                        MaterialPageRoute(
+                            builder: (context) => ChatListScreen()),
+                      );
+                    } else if (state is LoginFailure) {
+                      ScaffoldMessenger.of(context).showSnackBar(
+                        SnackBar(content: Text(state.error)),
+                      );
+                    }
+                  },
+                  builder: (context, state) {
+                    if (state is LoginLoading) {
+                      return CircularProgressIndicator();
+                    }
+                    return Container(
+                      width: double.infinity,
+                      child: ElevatedButton(
+                        style: ElevatedButton.styleFrom(
+                          padding: EdgeInsets.symmetric(vertical: 20),
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(30.0),
+                          ),
+                          primary: Colors.transparent,
+                          onPrimary: Colors.white,
+                          shadowColor: Colors.transparent,
+                          minimumSize: Size(double.infinity, 60),
+                        ),
+                        onPressed: () {
+                          context.read<LoginBloc>().add(LoginButtonPressed(
+                                email: _emailController.text,
+                                password: _passwordController.text,
+                              ));
+                        },
+                        child: Ink(
+                          decoration: BoxDecoration(
+                            gradient: LinearGradient(
+                              colors: [Colors.purple, Colors.pink],
+                              begin: Alignment.centerLeft,
+                              end: Alignment.centerRight,
+                            ),
+                            borderRadius: BorderRadius.circular(30.0),
+                          ),
+                          child: Container(
+                            alignment: Alignment.center,
+                            height: 60,
+                            child: Text(
+                              'Login',
+                              style: TextStyle(
+                                fontSize: 16,
+                                color: Colors.white,
+                              ),
+                            ),
+                          ),
+                        ),
+                      ),
+                    );
+                  },
+                ),
+                SizedBox(height: 16.0),
+                TextButton(
+                  onPressed: () {
+                    context.read<LoginBloc>().add(RegisterButtonPressed(
+                          email: _emailController.text,
+                          password: _passwordController.text,
+                        ));
+                  },
+                  child: Text('Don\'t have an account? Register here!',
+                      style: TextStyle(color: Colors.purple)),
+                ),
+                SizedBox(height: 16.0),
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    IconButton(
+                      icon: Image.asset('assets/facebook_icon.png'),
+                      onPressed: () {},
+                    ),
+                    IconButton(
+                      icon: Image.asset('assets/apple_icon.png'),
+                      onPressed: () {},
+                    ),
+                    IconButton(
+                      icon: Image.asset('assets/google_icon.png'),
+                      onPressed: () {},
+                    ),
+                  ],
                 ),
               ],
             ),
-          ],
+          ),
         ),
       ),
     );
