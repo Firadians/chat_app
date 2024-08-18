@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:flutter/gestures.dart';
 import 'bloc/login_bloc.dart';
 import 'bloc/login_event.dart';
 import 'bloc/login_state.dart';
@@ -138,15 +139,30 @@ class LoginScreen extends StatelessWidget {
                 ),
                 SizedBox(height: 16.0),
                 TextButton(
-                  onPressed: () {
-                    context.read<LoginBloc>().add(RegisterButtonPressed(
-                          email: _emailController.text,
-                          password: _passwordController.text,
-                        ));
-                  },
-                  child: Text('Don\'t have an account? Register here!',
-                      style: TextStyle(color: Colors.purple)),
+                  onPressed: () {},
+                  child: RichText(
+                    text: TextSpan(
+                      children: [
+                        TextSpan(
+                          text: 'Don\'t have an account? ',
+                          style: TextStyle(color: Colors.purple),
+                        ),
+                        TextSpan(
+                          text: 'Register here!',
+                          style: TextStyle(
+                            color: Colors.purple,
+                            fontWeight: FontWeight.bold, // Makes this part bold
+                          ),
+                          recognizer: TapGestureRecognizer()
+                            ..onTap = () {
+                              Navigator.pushNamed(context, '/register');
+                            },
+                        ),
+                      ],
+                    ),
+                  ),
                 ),
+
                 SizedBox(height: 16.0),
                 Row(
                   mainAxisAlignment: MainAxisAlignment.center,
@@ -165,6 +181,45 @@ class LoginScreen extends StatelessWidget {
                     ),
                   ],
                 ),
+                SizedBox(height: 32.0),
+                // Google and Facebook Buttons
+                // Row(
+                //   mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                //   children: [
+                //     // Google Button
+                //     OutlinedButton.icon(
+                //       onPressed: () {},
+                //       style: OutlinedButton.styleFrom(
+                //         shape: RoundedRectangleBorder(
+                //           borderRadius: BorderRadius.circular(30.0),
+                //         ),
+                //         side: BorderSide(color: Colors.purple),
+                //       ),
+                //       icon: Image.asset(
+                //         'assets/app_logo.png', // Replace with the correct path
+                //         height: 24.0,
+                //       ),
+                //       label:
+                //           Text('Google', style: TextStyle(color: Colors.black)),
+                //     ),
+                //     // Facebook Button
+                //     OutlinedButton.icon(
+                //       onPressed: () {},
+                //       style: OutlinedButton.styleFrom(
+                //         shape: RoundedRectangleBorder(
+                //           borderRadius: BorderRadius.circular(30.0),
+                //         ),
+                //         side: BorderSide(color: Colors.purple),
+                //       ),
+                //       icon: Image.asset(
+                //         'assets/app_logo.png', // Replace with the correct path
+                //         height: 24.0,
+                //       ),
+                //       label: Text('Facebook',
+                //           style: TextStyle(color: Colors.black)),
+                //     ),
+                //   ],
+                // ),
               ],
             ),
           ),

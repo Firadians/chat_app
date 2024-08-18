@@ -4,6 +4,8 @@ import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'login_screen.dart';
 import 'bloc/login_bloc.dart';
+import 'register_screen.dart';
+import 'bloc/register_bloc.dart';
 import 'notification_service.dart';
 import 'add_friend_screen.dart';
 import 'friend_requests_screen.dart';
@@ -24,6 +26,10 @@ class MyApp extends StatelessWidget {
         BlocProvider<LoginBloc>(
           create: (context) => LoginBloc(),
         ),
+        BlocProvider(
+          create: (context) => RegisterBloc(),
+          child: RegisterScreen(),
+        ),
       ],
       child: MaterialApp(
         title: 'Flutter Chat App',
@@ -35,6 +41,7 @@ class MyApp extends StatelessWidget {
             : ChatListScreen(),
         routes: {
           '/login': (context) => LoginScreen(),
+          '/register': (context) => RegisterScreen(),
           '/chat': (context) => ChatListScreen(),
           '/add_friend': (context) => AddFriendScreen(),
           '/friend_requests': (context) => FriendRequestsScreen(),
