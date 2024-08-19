@@ -46,9 +46,62 @@ class _ChatScreenState extends State<ChatScreen> {
   Widget build(BuildContext context) {
     String chatRoomId =
         getChatRoomId(_auth.currentUser!.uid, widget.peerUser['uid']);
+
     return Scaffold(
       appBar: AppBar(
-        title: Text(widget.peerUser['email']),
+        title: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            Text(
+              widget.peerUser['email'],
+              style: TextStyle(fontSize: 16),
+            ),
+            StreamBuilder<DocumentSnapshot>(
+              stream: FirebaseFirestore.instance
+                  .collection('users')
+                  .doc(widget.peerUser['uid'])
+                  .snapshots(),
+              builder: (context, snapshot) {
+                if (snapshot.connectionState == ConnectionState.waiting) {
+                  return Text(
+                    'Loading...',
+                    style: TextStyle(fontSize: 12, color: Colors.white70),
+                  );
+                }
+                if (snapshot.hasError) {
+                  return Text(
+                    'Error',
+                    style: TextStyle(fontSize: 12, color: Colors.redAccent),
+                  );
+                } else {
+                  return Text(
+                    'No status...',
+                    style: TextStyle(fontSize: 12, color: Colors.white70),
+                  );
+                }
+
+                bool isOnline = snapshot.data?['isOnline'] ?? false;
+
+                return Text(
+                  isOnline ? 'Online' : 'Offline',
+                  style: TextStyle(
+                    fontSize: 12,
+                    color: isOnline ? Colors.greenAccent : Colors.white70,
+                  ),
+                );
+              },
+            ),
+          ],
+        ),
+        centerTitle: true,
+        actions: <Widget>[
+          IconButton(
+            icon: Icon(Icons.video_call),
+            onPressed: () {
+              // Implement video call functionality
+            },
+          ),
+        ],
       ),
       body: Column(
         children: <Widget>[
@@ -95,8 +148,19 @@ class _ChatScreenState extends State<ChatScreen> {
                           padding: EdgeInsets.symmetric(
                               vertical: 10, horizontal: 15),
                           decoration: BoxDecoration(
-                            color: isMe ? Colors.blueAccent : Colors.grey[300],
+                            color: isMe
+                                ? Color.fromARGB(255, 82, 38, 230)
+                                : const Color.fromARGB(255, 244, 244, 244),
                             borderRadius: BorderRadius.circular(10),
+                            boxShadow: [
+                              BoxShadow(
+                                color: Colors.black.withOpacity(0.2),
+                                spreadRadius: 1,
+                                blurRadius: 5,
+                                offset:
+                                    Offset(0, 3), // changes position of shadow
+                              ),
+                            ],
                           ),
                           child: Column(
                             crossAxisAlignment: isMe
@@ -107,6 +171,7 @@ class _ChatScreenState extends State<ChatScreen> {
                                 message['text'],
                                 style: TextStyle(
                                     color: isMe ? Colors.white : Colors.black),
+                                softWrap: true, // Support multi-line display
                               ),
                               SizedBox(height: 5),
                               Text(
@@ -140,12 +205,25 @@ class _ChatScreenState extends State<ChatScreen> {
             padding: const EdgeInsets.all(8.0),
             child: Row(
               children: <Widget>[
+                IconButton(
+                  icon: Icon(Icons.add),
+                  onPressed: () {
+                    // Implement functionality for adding attachments
+                  },
+                ),
                 Expanded(
                   child: TextField(
                     controller: _controller,
                     decoration: InputDecoration(hintText: 'Enter your message'),
+                    maxLines: null, // Allow multi-line input
                     onSubmitted: (_) => _sendMessage(),
                   ),
+                ),
+                IconButton(
+                  icon: Icon(Icons.mic),
+                  onPressed: () {
+                    // Implement voice message functionality
+                  },
                 ),
                 IconButton(
                   icon: Icon(Icons.send),

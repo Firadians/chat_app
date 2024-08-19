@@ -19,6 +19,19 @@ void main() async {
 }
 
 class MyApp extends StatelessWidget {
+  // Create the custom color swatch
+  final Map<int, Color> color = {
+    50: Color.fromRGBO(82, 38, 230, .1),
+    100: Color.fromRGBO(82, 38, 230, .2),
+    200: Color.fromRGBO(82, 38, 230, .3),
+    300: Color.fromRGBO(82, 38, 230, .4),
+    400: Color.fromRGBO(82, 38, 230, .5),
+    500: Color.fromRGBO(82, 38, 230, .6),
+    600: Color.fromRGBO(82, 38, 230, .7),
+    700: Color.fromRGBO(82, 38, 230, .8),
+    800: Color.fromRGBO(82, 38, 230, .9),
+    900: Color.fromRGBO(82, 38, 230, 1),
+  };
   @override
   Widget build(BuildContext context) {
     return MultiBlocProvider(
@@ -34,7 +47,7 @@ class MyApp extends StatelessWidget {
       child: MaterialApp(
         title: 'Flutter Chat App',
         theme: ThemeData(
-          primarySwatch: Colors.blue,
+          primarySwatch: MaterialColor(0xFF5226E6, color),
         ),
         home: FirebaseAuth.instance.currentUser == null
             ? LoginScreen()
