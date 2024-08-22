@@ -15,7 +15,6 @@ class ChatListScreen extends StatefulWidget {
 class _ChatListScreenState extends State<ChatListScreen> {
   int _selectedIndex = 0;
 
-  // Correct usage without `const`
   static final List<Widget> _pages = <Widget>[
     ChatListScreenContent(),
     AddFriendScreen(),
@@ -32,25 +31,55 @@ class _ChatListScreenState extends State<ChatListScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       body: _pages[_selectedIndex],
-      // Correct usage without `const`
-      bottomNavigationBar: BottomNavigationBar(
-        items: <BottomNavigationBarItem>[
-          BottomNavigationBarItem(
-            icon: Icon(Icons.chat),
-            label: 'Chats',
+      floatingActionButton: FloatingActionButton(
+        onPressed: () {
+          setState(() {
+            _selectedIndex = 1; // Navigate to Add Friend page
+          });
+        },
+        backgroundColor: Color.fromARGB(255, 82, 38, 230), // Your custom color
+        child: Icon(Icons.person_add),
+      ),
+      floatingActionButtonLocation: FloatingActionButtonLocation.centerDocked,
+      bottomNavigationBar: BottomAppBar(
+        shape: CircularNotchedRectangle(),
+        notchMargin: 8.0,
+        child: Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 16.0),
+          child: Row(
+            mainAxisAlignment: MainAxisAlignment.spaceAround,
+            children: <Widget>[
+              IconButton(
+                icon: Icon(Icons.chat),
+                color: _selectedIndex == 0 ? Colors.purple : Colors.grey,
+                onPressed: () {
+                  _onItemTapped(0);
+                },
+              ),
+              IconButton(
+                icon: Icon(Icons.group),
+                color: _selectedIndex == 2 ? Colors.purple : Colors.grey,
+                onPressed: () {},
+              ),
+              IconButton(
+                icon: SizedBox.shrink(), // Invisible widget acting as a spacer
+                onPressed: null, // Disabled button
+              ),
+              IconButton(
+                icon: Icon(Icons.call),
+                color: _selectedIndex == 3 ? Colors.purple : Colors.grey,
+                onPressed: () {},
+              ),
+              IconButton(
+                icon: Icon(Icons.person),
+                color: _selectedIndex == 4 ? Colors.purple : Colors.grey,
+                onPressed: () {
+                  _onItemTapped(4);
+                },
+              ),
+            ],
           ),
-          BottomNavigationBarItem(
-            icon: Icon(Icons.person_add),
-            label: 'Add Friend',
-          ),
-          BottomNavigationBarItem(
-            icon: Icon(Icons.person),
-            label: 'Profile',
-          ),
-        ],
-        currentIndex: _selectedIndex,
-        selectedItemColor: Colors.blue,
-        onTap: _onItemTapped,
+        ),
       ),
     );
   }
@@ -59,6 +88,7 @@ class _ChatListScreenState extends State<ChatListScreen> {
 class ChatListScreenContent extends StatelessWidget {
   final FirebaseAuth _auth = FirebaseAuth.instance;
   final FirebaseFirestore _firestore = FirebaseFirestore.instance;
+
   String getChatRoomId(String user1, String user2) {
     return user1.hashCode <= user2.hashCode ? '$user1-$user2' : '$user2-$user1';
   }
@@ -127,7 +157,6 @@ class ChatListScreenContent extends StatelessWidget {
                                   message: 'No messages yet',
                                   time: '',
                                   isRead: true,
-                                  // imageUrl: friendData['profilePic'],
                                   onTap: () {
                                     Navigator.push(
                                       context,
@@ -155,7 +184,6 @@ class ChatListScreenContent extends StatelessWidget {
                                 message: recentMessage,
                                 time: formattedTime,
                                 isRead: isRead,
-                                // imageUrl: friendData['profilePic'],
                                 onTap: () {
                                   Navigator.push(
                                     context,
@@ -172,39 +200,6 @@ class ChatListScreenContent extends StatelessWidget {
                       );
                     }).toList(),
                     Divider(),
-                    // ListTile(
-                    //   title: Text('Groups'),
-                    //   trailing: IconButton(
-                    //     icon: Icon(Icons.add),
-                    //     onPressed: () {
-                    //       // Add functionality to create a new group
-                    //     },
-                    //   ),
-                    // ),
-                    // ...groups.map((groupId) {
-                    //   return FutureBuilder<DocumentSnapshot>(
-                    //     future:
-                    //         _firestore.collection('groups').doc(groupId).get(),
-                    //     builder: (context, groupSnapshot) {
-                    //       if (!groupSnapshot.hasData) {
-                    //         return ListTile(title: Text('Loading...'));
-                    //       }
-                    //       final groupData = groupSnapshot.data!;
-                    //       return ListTile(
-                    //         title: Text(groupData['name']),
-                    //         onTap: () {
-                    //           Navigator.push(
-                    //             context,
-                    //             MaterialPageRoute(
-                    //               builder: (context) =>
-                    //                   GroupChatScreen(group: groupData),
-                    //             ),
-                    //           );
-                    //         },
-                    //       );
-                    //     },
-                    //   );
-                    // }).toList(),
                   ],
                 );
               },
@@ -241,11 +236,11 @@ class ChatListItem extends StatelessWidget {
       title: Text(name),
       subtitle: Text(
         message,
-        maxLines: 1, // Limit to 1 line
-        overflow: TextOverflow.ellipsis, // Show "..." for overflow
+        maxLines: 1,
+        overflow: TextOverflow.ellipsis,
         style: TextStyle(
-          fontSize: 14.0, // Make the text smaller
-          color: Colors.black54, // Optional: adjust text color if needed
+          fontSize: 14.0,
+          color: Colors.black54,
         ),
       ),
       trailing: Column(
@@ -253,14 +248,11 @@ class ChatListItem extends StatelessWidget {
         children: [
           Text(
             time,
-            style:
-                TextStyle(fontSize: 12.0), // Optional: make time text smaller
+            style: TextStyle(fontSize: 12.0),
           ),
           Icon(
             Icons.check_circle,
-            color: isRead
-                ? Colors.green
-                : Colors.grey, // Green if read, grey if not read
+            color: isRead ? Colors.green : Colors.grey,
             size: 16,
           ),
         ],
