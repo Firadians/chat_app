@@ -115,7 +115,10 @@ class LoginScreen extends StatelessWidget {
                         child: Ink(
                           decoration: BoxDecoration(
                             gradient: LinearGradient(
-                              colors: [Colors.purple, Colors.pink],
+                              colors: [
+                                Color.fromARGB(255, 196, 44, 191),
+                                const Color.fromARGB(255, 233, 34, 101)
+                              ],
                               begin: Alignment.centerLeft,
                               end: Alignment.centerRight,
                             ),
@@ -137,7 +140,6 @@ class LoginScreen extends StatelessWidget {
                     );
                   },
                 ),
-                SizedBox(height: 16.0),
                 TextButton(
                   onPressed: () {},
                   child: RichText(
@@ -168,15 +170,7 @@ class LoginScreen extends StatelessWidget {
                   mainAxisAlignment: MainAxisAlignment.center,
                   children: [
                     IconButton(
-                      icon: Image.asset('assets/facebook_icon.png'),
-                      onPressed: () {},
-                    ),
-                    IconButton(
-                      icon: Image.asset('assets/apple_icon.png'),
-                      onPressed: () {},
-                    ),
-                    IconButton(
-                      icon: Image.asset('assets/google_icon.png'),
+                      icon: Image.asset('assets/google_logo.png'),
                       onPressed: () {},
                     ),
                   ],

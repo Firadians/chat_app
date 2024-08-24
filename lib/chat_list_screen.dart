@@ -74,7 +74,7 @@ class _ChatListScreenState extends State<ChatListScreen> {
                 icon: Icon(Icons.person),
                 color: _selectedIndex == 4 ? Colors.purple : Colors.grey,
                 onPressed: () {
-                  _onItemTapped(4);
+                  _onItemTapped(2);
                 },
               ),
             ],
