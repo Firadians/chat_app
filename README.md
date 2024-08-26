@@ -1,6 +1,6 @@
-# chat_app
+# chat_app (Still on Development)
 
-A new Flutter project.
+A new Flutter project. The main objective of this application is to communicate with other people through this app. Right now it is still on development. I will update the app code periodically.
 
 ## Getting Started
 
