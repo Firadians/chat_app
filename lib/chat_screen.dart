@@ -2,6 +2,11 @@ import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:intl/intl.dart';
+import 'package:agora_rtc_engine/agora_rtc_engine.dart';
+import 'package:flutter_sound/flutter_sound.dart';
+import 'package:permission_handler/permission_handler.dart';
+import 'package:path_provider/path_provider.dart';
+import 'dart:io';
 
 class ChatScreen extends StatefulWidget {
   final DocumentSnapshot peerUser;
@@ -16,9 +21,132 @@ class _ChatScreenState extends State<ChatScreen> {
   final _auth = FirebaseAuth.instance;
   final _controller = TextEditingController();
   final _scrollController = ScrollController();
+  static const appId =
+      'c85fe25e3dc8483d837904b754cfd912'; // Replace with your Agora App ID
+  static const token = null; // Token can be set to null for now
+  late final RtcEngine _engine;
+
+  final FlutterSoundRecorder _recorder = FlutterSoundRecorder();
+  final FlutterSoundPlayer _player = FlutterSoundPlayer();
+  bool _isRecording = false;
+  String? _recordedFilePath;
+
+  @override
+  void initState() {
+    super.initState();
+    _initAgora();
+    _initRecorder();
+  }
+
+  Future<void> _initRecorder() async {
+    await Permission.microphone.request();
+    await _recorder.openRecorder();
+  }
+
+  Future<void> _startRecording() async {
+    Directory tempDir = await getTemporaryDirectory();
+    String filePath =
+        '${tempDir.path}/${DateTime.now().millisecondsSinceEpoch}.aac';
+    await _recorder.startRecorder(toFile: filePath);
+    setState(() {
+      _isRecording = true;
+    });
+  }
+
+  Future<void> _stopRecording() async {
+    String? filePath = await _recorder.stopRecorder();
+    setState(() {
+      _isRecording = false;
+      _recordedFilePath = filePath;
+    });
+    if (filePath != null) {
+      _sendVoiceMessage(filePath);
+    }
+  }
+
+  Future<void> _sendVoiceMessage(String filePath) async {
+    File voiceFile = File(filePath);
+    String chatRoomId =
+        getChatRoomId(_auth.currentUser!.uid, widget.peerUser['uid']);
+
+    // Upload the voice note to Firebase Storage (you need to implement this part)
+    // Store the download URL in Firestore along with other message details
+    FirebaseFirestore.instance
+        .collection('chats')
+        .doc(chatRoomId)
+        .collection('messages')
+        .add({
+      'voiceUrl':
+          filePath, // Replace with the actual download URL after uploading
+      'senderId': _auth.currentUser!.uid,
+      'timestamp': FieldValue.serverTimestamp(),
+      'read': false,
+      'type':
+          'voice', // New field to differentiate between text and voice messages
+    });
+
+    _scrollToBottom();
+  }
+
+  void _playVoiceMessage(String url) async {
+    if (_player.isPlaying) {
+      await _player.stopPlayer();
+    } else {
+      await _player.startPlayer(fromURI: url);
+    }
+  }
+
+  void _scrollToBottom() {
+    Future.delayed(Duration(milliseconds: 100), () {
+      _scrollController.jumpTo(_scrollController.position.maxScrollExtent);
+    });
+  }
+
+  @override
+  void dispose() {
+    _recorder.closeRecorder();
+    _player.closePlayer();
+    super.dispose();
+  }
 
   String getChatRoomId(String user1, String user2) {
     return user1.hashCode <= user2.hashCode ? '$user1-$user2' : '$user2-$user1';
+  }
+
+  void _initAgora() async {
+    _engine = createAgoraRtcEngine();
+    await _engine.initialize(RtcEngineContext(appId: appId));
+
+    _engine.registerEventHandler(
+      RtcEngineEventHandler(
+        onJoinChannelSuccess: (RtcConnection connection, int elapsed) {
+          print(
+              'Joined channel: ${connection.channelId}, with uid: ${connection.localUid}');
+        },
+        onUserJoined: (RtcConnection connection, int remoteUid, int elapsed) {
+          print('User joined: $remoteUid');
+        },
+        onUserOffline: (RtcConnection connection, int remoteUid,
+            UserOfflineReasonType reason) {
+          print('User offline: $remoteUid');
+        },
+      ),
+    );
+  }
+
+  void _startCall() async {
+    String chatRoomId =
+        getChatRoomId(_auth.currentUser!.uid, widget.peerUser['uid']);
+    await _engine.joinChannel(
+      token: token ?? "",
+      channelId: chatRoomId,
+      uid: 0,
+      options: ChannelMediaOptions(),
+    );
+  }
+
+  void _endCall() async {
+    await _engine.leaveChannel();
   }
 
   void _sendMessage() {
@@ -34,11 +162,10 @@ class _ChatScreenState extends State<ChatScreen> {
         'senderId': _auth.currentUser!.uid,
         'timestamp': FieldValue.serverTimestamp(),
         'read': false,
+        'type': 'text',
       });
       _controller.clear();
-      Future.delayed(Duration(milliseconds: 100), () {
-        _scrollController.jumpTo(_scrollController.position.maxScrollExtent);
-      });
+      _scrollToBottom();
     }
   }
 
@@ -96,10 +223,12 @@ class _ChatScreenState extends State<ChatScreen> {
         centerTitle: true,
         actions: <Widget>[
           IconButton(
-            icon: Icon(Icons.video_call),
-            onPressed: () {
-              // Implement video call functionality
-            },
+            icon: Icon(Icons.call),
+            onPressed: _startCall,
+          ),
+          IconButton(
+            icon: Icon(Icons.call_end),
+            onPressed: _endCall,
           ),
         ],
       ),
@@ -133,6 +262,7 @@ class _ChatScreenState extends State<ChatScreen> {
                             .containsKey('read')
                         ? message['read']
                         : false;
+                    String messageType = message['type'] ?? 'text';
 
                     if (!isMe && !isRead) {
                       message.reference.update({'read': true});
@@ -167,12 +297,21 @@ class _ChatScreenState extends State<ChatScreen> {
                                 ? CrossAxisAlignment.end
                                 : CrossAxisAlignment.start,
                             children: <Widget>[
-                              Text(
-                                message['text'],
-                                style: TextStyle(
-                                    color: isMe ? Colors.white : Colors.black),
-                                softWrap: true, // Support multi-line display
-                              ),
+                              if (messageType == 'text')
+                                Text(
+                                  message['text'],
+                                  style: TextStyle(
+                                      color:
+                                          isMe ? Colors.white : Colors.black),
+                                  softWrap: true, // Support multi-line display
+                                ),
+                              if (messageType == 'voice')
+                                IconButton(
+                                  icon: Icon(Icons.play_arrow),
+                                  onPressed: () =>
+                                      _playVoiceMessage(message['voiceUrl']),
+                                  color: isMe ? Colors.white : Colors.black,
+                                ),
                               SizedBox(height: 5),
                               Text(
                                 time,
@@ -220,10 +359,9 @@ class _ChatScreenState extends State<ChatScreen> {
                   ),
                 ),
                 IconButton(
-                  icon: Icon(Icons.mic),
-                  onPressed: () {
-                    // Implement voice message functionality
-                  },
+                  icon: _isRecording ? Icon(Icons.stop) : Icon(Icons.mic),
+                  onPressed: _isRecording ? _stopRecording : _startRecording,
+                  color: _isRecording ? Colors.red : null,
                 ),
                 IconButton(
                   icon: Icon(Icons.send),

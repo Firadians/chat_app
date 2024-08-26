@@ -17,7 +17,9 @@ class _ChatListScreenState extends State<ChatListScreen> {
 
   static final List<Widget> _pages = <Widget>[
     ChatListScreenContent(),
+    // GroupChatScreen(),
     AddFriendScreen(),
+    // CallHistoryScreen(),
     ProfileScreen(),
   ];
 
