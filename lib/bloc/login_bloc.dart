@@ -21,7 +21,8 @@ class LoginBloc extends Bloc<LoginEvent, LoginState> {
         email: event.email,
         password: event.password,
       );
-      UserModel user = UserModel.fromFirebaseUser(userCredential.user!);
+      UserModel user =
+          UserModel.fromFirebaseUser(userCredential.user!, username: '');
       emit(LoginSuccess(user: user));
     } catch (e) {
       emit(LoginFailure(error: e.toString()));
@@ -32,16 +33,25 @@ class LoginBloc extends Bloc<LoginEvent, LoginState> {
       RegisterButtonPressed event, Emitter<LoginState> emit) async {
     emit(LoginLoading());
     try {
+      // Create the user with email and password
       UserCredential userCredential =
           await _auth.createUserWithEmailAndPassword(
         email: event.email,
         password: event.password,
       );
-      UserModel user = UserModel.fromFirebaseUser(userCredential.user!);
+
+      // Create the UserModel including the username
+      UserModel user = UserModel.fromFirebaseUser(
+        userCredential.user!,
+        username: event.username, // Include the username
+      );
+
+      // Save the user to Firestore
       FirebaseFirestore.instance
           .collection('users')
           .doc(user.uid)
           .set(user.toMap());
+
       emit(LoginSuccess(user: user));
     } catch (e) {
       emit(LoginFailure(error: e.toString()));

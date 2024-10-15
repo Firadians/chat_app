@@ -5,6 +5,7 @@ import 'chat_screen.dart';
 import 'package:intl/intl.dart';
 import 'group_chat_screen.dart';
 import 'add_friend_screen.dart';
+import 'add_group_member_screen.dart';
 import 'profile_screen.dart';
 
 class ChatListScreen extends StatefulWidget {
@@ -17,6 +18,7 @@ class _ChatListScreenState extends State<ChatListScreen> {
 
   static final List<Widget> _pages = <Widget>[
     ChatListScreenContent(),
+
     // GroupChatScreen(),
     AddFriendScreen(),
     // CallHistoryScreen(),
