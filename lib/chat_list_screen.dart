@@ -1,3 +1,4 @@
+import 'package:ContactMe/news_screen.dart';
 import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
@@ -21,7 +22,7 @@ class _ChatListScreenState extends State<ChatListScreen> {
 
     // GroupChatScreen(),
     AddFriendScreen(),
-    // CallHistoryScreen(),
+    NewsPage(),
     ProfileScreen(),
   ];
 
@@ -62,8 +63,10 @@ class _ChatListScreenState extends State<ChatListScreen> {
               ),
               IconButton(
                 icon: Icon(Icons.group),
-                color: _selectedIndex == 2 ? Colors.purple : Colors.grey,
-                onPressed: () {},
+                color: _selectedIndex == 1 ? Colors.purple : Colors.grey,
+                onPressed: () {
+                  _onItemTapped(1);
+                },
               ),
               IconButton(
                 icon: SizedBox.shrink(), // Invisible widget acting as a spacer
@@ -71,14 +74,16 @@ class _ChatListScreenState extends State<ChatListScreen> {
               ),
               IconButton(
                 icon: Icon(Icons.call),
-                color: _selectedIndex == 3 ? Colors.purple : Colors.grey,
-                onPressed: () {},
+                color: _selectedIndex == 2 ? Colors.purple : Colors.grey,
+                onPressed: () {
+                  _onItemTapped(2);
+                },
               ),
               IconButton(
                 icon: Icon(Icons.person),
-                color: _selectedIndex == 4 ? Colors.purple : Colors.grey,
+                color: _selectedIndex == 3 ? Colors.purple : Colors.grey,
                 onPressed: () {
-                  _onItemTapped(2);
+                  _onItemTapped(3);
                 },
               ),
             ],
@@ -157,7 +162,7 @@ class ChatListScreenContent extends StatelessWidget {
                               if (!messageSnapshot.hasData ||
                                   messageSnapshot.data!.docs.isEmpty) {
                                 return ChatListItem(
-                                  name: friendData['email'],
+                                  name: friendData['username'],
                                   message: 'No messages yet',
                                   time: '',
                                   isRead: true,
@@ -184,7 +189,7 @@ class ChatListScreenContent extends StatelessWidget {
                               bool isRead = recentMessageData['read'] ?? false;
 
                               return ChatListItem(
-                                name: friendData['email'],
+                                name: friendData['username'],
                                 message: recentMessage,
                                 time: formattedTime,
                                 isRead: isRead,

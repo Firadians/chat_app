@@ -164,15 +164,15 @@ class LoginScreen extends StatelessWidget {
                 ),
 
                 SizedBox(height: 16.0),
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  children: [
-                    IconButton(
-                      icon: Image.asset('assets/google_logo.png'),
-                      onPressed: () {},
-                    ),
-                  ],
-                ),
+                // Row(
+                //   mainAxisAlignment: MainAxisAlignment.center,
+                //   children: [
+                //     IconButton(
+                //       icon: Image.asset('assets/google_logo.png'),
+                //       onPressed: () {},
+                //     ),
+                //   ],
+                // ),
                 SizedBox(height: 32.0),
                 // Google and Facebook Buttons
                 // Row(
